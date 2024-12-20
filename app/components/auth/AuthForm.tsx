@@ -1,11 +1,21 @@
-import { Link, useSearchParams } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useNavigation,
+  useSearchParams,
+} from "@remix-run/react";
 import { FaLock, FaUserPlus } from "react-icons/fa";
+import { SignupInput, ValidationErrors } from "../../types/interfaces";
 
 function AuthForm() {
   // useSearchParams em retorna un array amb el primer element com a objecte amb
   // els paràmetres de cerca. El segon no el necessito ja que seria per a
   // manipular els paràmetres de cerca.
   const [searchParams] = useSearchParams();
+  const navigation = useNavigation();
+  const validationErrors = useActionData<SignupInput|ValidationErrors>();
+
   // Si no hi ha paràmetre "mode" al query, per defecte serà login.
   const authMode = searchParams.get("mode") || "login";
 
@@ -15,8 +25,10 @@ function AuthForm() {
   const toggleBtnCaption =
     authMode === "login" ? "Create a New User" : "Log in with existing user";
 
+  const isSubmitting = navigation.state !== "idle";
+
   return (
-    <form
+    <Form
       method="post"
       className="mx-auto max-w-md rounded-lg bg-indigo-100 p-5 shadow-md"
       id="auth-form"
@@ -54,8 +66,20 @@ function AuthForm() {
         />
       </p>
       <div className="text-center">
-        <button className="rounded bg-indigo-600 px-4 py-2 text-white">
-          {submitBtnCaption}
+        {validationErrors && (
+          <ul className="mb-4 list-inside text-red-500">
+            {Object.values(validationErrors as Record<string, string>).map(
+              (error) => (
+                <li key={error}>{error}</li>
+              ),
+            )}
+          </ul>
+        )}
+        <button
+          disabled={isSubmitting}
+          className="rounded bg-indigo-600 px-4 py-2 text-white"
+        >
+          {isSubmitting ? "Authenticating..." : submitBtnCaption}
         </button>
         <Link
           // També hem hagut de fer ús del ternari per canviar el link com a tal!
@@ -65,7 +89,7 @@ function AuthForm() {
           {toggleBtnCaption}
         </Link>
       </div>
-    </form>
+    </Form>
   );
 }
 

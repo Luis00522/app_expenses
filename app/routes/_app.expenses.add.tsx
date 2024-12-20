@@ -4,6 +4,7 @@ import Modal from "../components/util/Modal";
 import { ActionFunctionArgs } from "@remix-run/node";
 import { addExpense } from "../data/expenses.server";
 import { validateExpenseInput } from "../data/validation.server";
+import { requireUserSession } from "../data/auth.server";
 
 
 export default function ExpensesAddPage() {
@@ -22,6 +23,8 @@ export default function ExpensesAddPage() {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+
+  const userId = await requireUserSession(request);
   const formdata = await request.formData();
 
   const expenseData = {
@@ -38,7 +41,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   // console.log(formdata, expenseData);
 
-  await addExpense(expenseData);
+  await addExpense(expenseData, userId);
 
   return redirect("/expenses");
 }

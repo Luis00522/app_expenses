@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useFetcher } from "@remix-run/react";
 import { FaTrash, FaEdit } from "react-icons/fa";
 
 interface ExpenseListItemProps {
@@ -8,9 +8,19 @@ interface ExpenseListItemProps {
 }
 
 function ExpenseListItem({ id, title, amount }: ExpenseListItemProps) {
-  function deleteExpenseItemHandler() {
-    // tbd
+  const fetcher = useFetcher();
+  const isDeleting = fetcher.state === "submitting";
+
+  function confirmDelete(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault(); // Evitem l'enviament immediat del formulari
+    const isConfirmed = window.confirm(
+      "Segur que vols eliminar la despesa?",
+    );
+    if (isConfirmed) {
+      fetcher.submit(null, { method: "delete", action: `/expenses/${id}` });
+    }
   }
+
   return (
     <div className="flex w-full items-center justify-between">
       {/* Informació de la despesa */}
@@ -21,12 +31,17 @@ function ExpenseListItem({ id, title, amount }: ExpenseListItemProps) {
 
       {/* Botons d'acció */}
       <div className="flex items-center space-x-4">
-        <button
-          onClick={deleteExpenseItemHandler}
-          className="transform text-xl text-red-500 transition-transform hover:scale-125 hover:text-red-700"
-        >
-          <FaTrash />
-        </button>
+        <fetcher.Form method="delete" action={`/expenses/${id}`}>
+          <button
+            type="submit"
+            onClick={confirmDelete}
+            disabled={isDeleting}
+            className="transform text-xl text-red-500 transition-transform hover:scale-125 hover:text-red-700"
+          >
+            <FaTrash />
+          </button>
+        </fetcher.Form>
+
         <Link
           to={`../expenses/${id}`}
           className="transform text-xl text-blue-500 transition-transform hover:scale-125 hover:text-blue-700"
